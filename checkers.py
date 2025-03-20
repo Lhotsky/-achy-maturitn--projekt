@@ -4,6 +4,7 @@ screen = pygame.display.set_mode([1000,800])
 pygame.display.set_caption('checkers game')
 font = pygame.font.Font('freesansbold.ttf', 20)
 big_font = pygame.font.Font('freesansbold.ttf', 50)
+mid_font = pygame.font.Font('freesansbold.ttf', 40)
 mainvoidtime = pygame.time.Clock()
 fps = 60
 def resetgame():
@@ -29,19 +30,19 @@ def resetgame():
     time_w = 0  # White's time in milliseconds
     time_b = 0  # Black's time in milliseconds
 
-    castle_king_w = True
+    castle_king_w = True # logika pro rošádu
     castle_king_b = True
     castle_queenside_w = True
     castle_kingside_b = True
     castle_kingside_w = True
     castle_queenside_b = True  
 
-    en_passant_b = False
+    en_passant_b = False # en passant logika
     en_passant_w = False
     enpassantfileb = 9
     enpassantfilew = 9
 
-    white_pieces = ['rook', 'rook', 'honse', 'bishop', 'queen', 'king', 'bishop', 'honse',
+    white_pieces = ['rook', 'rook', 'honse', 'bishop', 'queen', 'king', 'bishop', 'honse', # základní pozice
                     'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp', 'pp']
     white_locals = [(0, 7), (7, 7), (1, 7), (2, 7), (3, 7), (4, 7), (5, 7), (6, 7),
                     (0, 6), (1, 6), (2, 6), (3, 6), (4, 6), (5, 6), (6, 6), (7, 6)]
@@ -77,9 +78,8 @@ white_queen = pygame.transform.scale(pygame.image.load('assets/white_queen.png')
 white_king = pygame.transform.scale(pygame.image.load('assets/white_king.png'), (100, 100))
 
 backboard = pygame.transform.scale(pygame.image.load('assets/backboard.png'), (800, 800))
-bookshelf2 = pygame.transform.scale(pygame.image.load('assets/bottom_right.png'), (200, 400))
-bookshelf1 = pygame.transform.scale(pygame.image.load('assets/top_right.png'), (200, 400))
-bookshelf3 = pygame.transform.scale(pygame.image.load('assets/end_game_scr.png'), (400, 200))
+bookshelf1 = pygame.transform.scale(pygame.image.load('assets/kebab.png'), (200, 800))
+bookshelf3 = pygame.transform.scale(pygame.image.load('assets/EEE.png'), (400, 200))
 white_ring = pygame.transform.scale(pygame.image.load('assets/ring_W.png'), (100, 100))
 black_ring = pygame.transform.scale(pygame.image.load('assets/ring_B.png'), (100, 100))
 black_selected_piece_icon = pygame.transform.scale(pygame.image.load('assets/whitesellection.png'), (100, 100))
@@ -108,28 +108,41 @@ piece_types = ['pp', 'honse', 'bishop', 'rook', 'queen', 'king']
 def draw_board():
     screen.blit(backboard, (0, 0)) # board
     screen.blit(bookshelf1, (800, 0))
-    screen.blit(bookshelf2, (800, 400))
     
-    screen.blit(font.render(f'time white:{time_w_secs} ', True, 'black'), (820, 210)) # clock
-    screen.blit(font.render(f'time black:{time_b_secs} ' , True, 'black'), (820, 240)) 
+    screen.blit(font.render(f'čas bílý:{time_w_secs} ', True, 'white'), (830, 280)) # clock
+    screen.blit(font.render(f'čas černý:{time_b_secs} ' , True, 'white'), (830, 250))
+    pygame.draw.rect(screen,(74, 42, 9),[800,0,200,100],10) 
+    pygame.draw.rect(screen,(74, 42, 9),[800,100,200,100],10)
 
     half_of_draw_rule = draw_rule // 2 # ending games if:
-    screen.blit(big_font.render('Resign', True, 'white'), (820, 30))
-    screen.blit(font.render(f'draw when 50: {half_of_draw_rule}', True, 'black'), (820, 270))
-    screen.blit(big_font.render('Draw?', True, 'white'), (820, 130))
+    screen.blit(mid_font.render('vzdát se', True, 'white'), (820, 35)) 
+    screen.blit(mid_font.render('remíza', True, 'white'), (830, 135))
+    screen.blit(font.render(f'50 pro remízu: {half_of_draw_rule}', True, 'white'), (820, 220))
+
+
+    screen.blit(font.render(f'sebrané figury:', True, 'white'), (830, 320)) #  dekorace
+    screen.blit(font.render('kdo hraje:', True, 'white'), (850, 760))
     if whom_turn ==2: # indicator whom's move it is
-        pygame.draw.rect(screen,(194, 0, 116),[800,780,200,20])
+        pygame.draw.rect(screen,(0,0,0),[800,780,200,20])
     else:
-        pygame.draw.rect(screen,(0, 106, 149),[800,780,200,20])     
+        pygame.draw.rect(screen,(255,255,255),[800,780,200,20]) 
+
+def draw_game_over():
+    screen.blit(bookshelf3,(200,300))
+    screen.blit(font.render(f'press enter to restart the game', True, 'white'), (250, 427))
+    if game_drawn == 0:
+        screen.blit(big_font.render(f'{winner} has won', True, 'white'), (225, 350))
+    else:
+        screen.blit(big_font.render('game is a draw', True, 'white'), (217, 350))    
 def draw_pieces():
     for i in range(len(white_pieces)):
         if white_pieces[i] == 'air': # placeholder for castle thing
             continue 
         
         index = piece_types.index(white_pieces[i])  # draws pieces 
-        screen.blit(white_images[index], (white_locals[i][0] * 100 , white_locals[i][1] * 100 ))
+        screen.blit(white_images[index], (white_locals[i][0] * 100 , white_locals[i][1] * 100 )) # zijstí pozici figurek z listu pozic, vynásobí je 100, pro x a y
         
-        if whom_turn == 0 and selected_piece == i: # draws sellection
+        if whom_turn == 0 and selected_piece == i: # nakreslí kolem vybrané figury čtverec 
             pygame.draw.rect(screen, (0, 106, 149), [white_locals[i][0] * 100, white_locals[i][1] * 100,
                                              100, 100], 5)
 
@@ -145,14 +158,14 @@ def draw_pieces():
                                               100, 100], 5)
             
 
-    for i in range(len(taken_pieces_white)): # draws captured pieces
+    for i in range(len(taken_pieces_white)): # projde sebranými figury a 
         captured_piece = taken_pieces_white[i]
         index = piece_types.index(captured_piece)
-        screen.blit(taken_b[index], (830, 310 + 25 * i))
+        screen.blit(taken_b[index], (830, 355 + 25 * i))
     for i in range(len(taken_pieces_black)):
         captured_piece = taken_pieces_black[i]
         index = piece_types.index(captured_piece)
-        screen.blit(taken_w[index], (930, 310 + 25 * i))
+        screen.blit(taken_w[index], (930, 355 + 25 * i))
 def draw_right_click():
     for i in range(len(rightclicklist)):  
         if whom_turn == 0 :    
@@ -399,13 +412,6 @@ def check_for_promotion_b():
     for i in range(len(black_pieces)): 
         if black_pieces[i] == "pp" and black_locals[i][1] == 7:  
             black_pieces[i] = "queen" 
-def draw_game_over():
-    screen.blit(bookshelf3,(200,300))
-    screen.blit(font.render(f'press enter to restart the game', True, 'black'), (250, 440))
-    if game_drawn == 0:
-        screen.blit(big_font.render(f'{winner} has won', True, 'black'), (225, 350))
-    else:
-        screen.blit(big_font.render('game is a draw', True, 'black'), (220, 350))
 
 black_moves = check_options(black_pieces, black_locals, 'black')
 white_moves = check_options(white_pieces, white_locals, 'white')
