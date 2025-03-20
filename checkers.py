@@ -22,7 +22,7 @@ def resetgame():
     half_of_draw_rule = 0  # 50-move draw rule
     draw_rule = 0
     counter = 0  # Check animation
-    game_drawn = 0  # 1 if the game is declared a draw
+    game_drawn = False  # 1 if the game is declared a draw
     winner = ''
     game_over = False
     time_w_secs = 600  # White's time in seconds
@@ -130,7 +130,7 @@ def draw_board():
 def draw_game_over():
     screen.blit(bookshelf3,(200,300))
     screen.blit(font.render(f'press enter to restart the game', True, 'white'), (250, 427))
-    if game_drawn == 0:
+    if game_drawn == False:
         screen.blit(big_font.render(f'{winner} has won', True, 'white'), (225, 350))
     else:
         screen.blit(big_font.render('game is a draw', True, 'white'), (217, 350))    
@@ -450,7 +450,7 @@ while run:
         legal_moves = check_legal_moves()
         draw_valid(legal_moves)
     if draw_rule == 100:  # 50-move draw rule
-        game_drawn = 1
+        game_drawn = True
     for event in pygame.event.get():
         if event.type == pygame.QUIT:  # Handle the window close button
             run = False
@@ -471,7 +471,7 @@ while run:
                 if where_leftclick in [(9, 0), (8, 0)]:
                     winner = 'white' if whom_turn == 2 else 'black'
                 if where_leftclick in [(8, 1), (9, 1)]:
-                    game_drawn = 1
+                    game_drawn = True
                 if whom_turn == 0:  # White's turn
                     if where_leftclick in white_locals:
                         selected_piece = white_locals.index(where_leftclick)
@@ -587,7 +587,7 @@ while run:
                 black_moves = check_options(black_pieces, black_locals, 'black')
                 white_moves = check_options(white_pieces, white_locals, 'white')
 
-    if winner or game_drawn == 1:
+    if winner or game_drawn:
         game_over = True
         draw_game_over()
 
