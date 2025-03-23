@@ -1,4 +1,6 @@
 import pygame
+import sqlite3
+# python -c "import sqlite3; print(sqlite3.sqlite_version)"
 pygame.init()
 screen = pygame.display.set_mode([1000,800])
 pygame.display.set_caption('checkers game')
@@ -7,6 +9,8 @@ big_font = pygame.font.Font('freesansbold.ttf', 50)
 mid_font = pygame.font.Font('freesansbold.ttf', 40)
 mainvoidtime = pygame.time.Clock()
 fps = 60
+conn = sqlite3.connect("game_results.db")
+cursor = conn.cursor()
 def resetgame():
     global half_of_draw_rule, draw_rule, counter, game_drawn, winner
     global time_w_secs, time_b_secs, time_w, time_b
@@ -80,6 +84,7 @@ white_king = pygame.transform.scale(pygame.image.load('assets/white_king.png'), 
 backboard = pygame.transform.scale(pygame.image.load('assets/backboard.png'), (800, 800))
 bookshelf1 = pygame.transform.scale(pygame.image.load('assets/kebab.png'), (200, 800))
 bookshelf3 = pygame.transform.scale(pygame.image.load('assets/EEE.png'), (400, 200))
+bob = pygame.transform.scale(pygame.image.load('assets/bob.png'), (400, 200))
 white_ring = pygame.transform.scale(pygame.image.load('assets/ring_W.png'), (100, 100))
 black_ring = pygame.transform.scale(pygame.image.load('assets/ring_B.png'), (100, 100))
 black_selected_piece_icon = pygame.transform.scale(pygame.image.load('assets/whitesellection.png'), (100, 100))
@@ -128,12 +133,25 @@ def draw_board():
         pygame.draw.rect(screen,(255,255,255),[800,780,200,20]) 
 
 def draw_game_over():
-    screen.blit(bookshelf3,(200,300))
-    screen.blit(font.render(f'press enter to restart the game', True, 'white'), (250, 427))
-    if game_drawn == False:
-        screen.blit(big_font.render(f'{winner} has won', True, 'white'), (225, 350))
+    screen.blit(bookshelf3, (200, 200))  
+    screen.blit(bob, (200, 400)) 
+    screen.blit(font.render(f'press enter to restart the game', True, 'white'), (250, 327)) 
+    
+    if draw == False:
+        screen.blit(big_font.render(f'{wictor} has won', True, 'white'), (225, 250))
     else:
-        screen.blit(big_font.render('game is a draw', True, 'white'), (217, 350))    
+        screen.blit(big_font.render('game is a draw', True, 'white'), (217, 250))
+
+    black_score, white_score, draw_score = get_results()
+
+    # Render text
+    screen.blit(font.render("Black", True, 'white'), (485, 470)) 
+    screen.blit(font.render("White", True, 'white'), (260, 470))
+    screen.blit(font.render("Draw", True, 'white'), (375, 470))
+    screen.blit(font.render(str(black_score), True, 'white'), (500, 510)) 
+    screen.blit(font.render(str(white_score), True, 'white'), (285, 510)) 
+    screen.blit(font.render(str(draw_score), True, 'white'), (385, 510))
+
 def draw_pieces():
     for i in range(len(white_pieces)):
         if white_pieces[i] == 'air': # placeholder for castle thing
@@ -412,6 +430,36 @@ def check_for_promotion_b():
     for i in range(len(black_pieces)): 
         if black_pieces[i] == "pp" and black_locals[i][1] == 7:  
             black_pieces[i] = "queen" 
+# sql wheeee
+
+cursor.execute("""
+    CREATE TABLE IF NOT EXISTS results (
+        id INTEGER PRIMARY KEY AUTOINCREMENT,
+        black INTEGER DEFAULT 0,
+        white INTEGER DEFAULT 0,
+        draw INTEGER DEFAULT 0
+    )
+""")
+cursor.execute("SELECT COUNT(*) FROM results")
+if cursor.fetchone()[0] == 0:
+    cursor.execute("INSERT INTO results (black, white, draw) VALUES (0, 0, 0)")
+    conn.commit()
+def update_winner(winner):
+    """Update the correct column in the database"""
+    if winner == "black":
+        cursor.execute("UPDATE results SET black = black + 1")
+    elif winner == "white":
+        cursor.execute("UPDATE results SET white = white + 1")
+    elif winner == "draw":
+        cursor.execute("UPDATE results SET draw = draw + 1")
+    
+    conn.commit()
+def get_results():
+    cursor.execute("SELECT black, white, draw FROM results")
+    result = cursor.fetchone()
+    if result:
+        return result  # (black, white, draw)
+    return (0, 0, 0)  # Default if no results found
 
 black_moves = check_options(black_pieces, black_locals, 'black')
 white_moves = check_options(white_pieces, white_locals, 'white')
@@ -589,6 +637,14 @@ while run:
 
     if winner or game_drawn:
         game_over = True
-        draw_game_over()
+        update_winner(winner if not game_drawn else "draw")
+        cursor.execute("SELECT * FROM results")
+        print(cursor.fetchall())
+        wictor = winner
+        draw = game_drawn
+        winner = ''
+        game_drawn = False
 
+    if game_over == True:
+        draw_game_over()
     pygame.display.update()
