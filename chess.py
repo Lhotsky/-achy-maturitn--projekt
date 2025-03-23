@@ -149,7 +149,7 @@ def draw_game_over():
     screen.blit(font.render("White", True, 'white'), (260, 470))
     screen.blit(font.render("Draw", True, 'white'), (375, 470))
     screen.blit(font.render(str(black_score), True, 'white'), (500, 510)) 
-    screen.blit(font.render(str(white_score), True, 'white'), (285, 510)) 
+    screen.blit(font.render(str(white_score), True, 'white'), (295, 510)) 
     screen.blit(font.render(str(draw_score), True, 'white'), (385, 510))
 
 def draw_pieces():
