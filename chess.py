@@ -508,7 +508,8 @@ while run:
                 y_axis = event.pos[1] // 100
                 if x_axis <= 7:
                     rightclick = (x_axis, y_axis)
-                    rightclicklist.append(rightclick)
+                    if rightclick not in rightclicklist:
+                        rightclicklist.append(rightclick)
             elif event.button == 1 and not game_over:  # Left-click logic
                 rightclicklist = []  # Reset right-click list
                 x_axis = event.pos[0] // 100
@@ -639,7 +640,6 @@ while run:
         game_over = True
         update_winner(winner if not game_drawn else "draw")
         cursor.execute("SELECT * FROM results")
-        print(cursor.fetchall())
         wictor = winner
         draw = game_drawn
         winner = ''
